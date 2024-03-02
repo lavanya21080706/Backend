@@ -69,7 +69,8 @@ router.get('/getAnalytics', verify, async (req, res) => {
   
       const incompleteDuetasks = await Board.countDocuments({
         dueDate: { $lt: currentDate }, // Due date is in the future
-        completed: false // Task is not completed
+        completed: false, // Task is not completed
+        status:'Done'
       });
   
       // Send the count information in the response
@@ -113,41 +114,37 @@ router.put('/updateDueTask', verify, async (req, res) => {
 
 
 //get all data
-
 router.get('/getCardData', verify, async (req, res) => {
+    const { duration, status } = req.query;
+  
+  
     try {
-        const { duration, status } = req.query;
-
-        // Validate the duration
-        // if (!['week', 'month', 'today'].includes(duration)) {
-        //     return res.status(400).json({ errorMessage: 'Invalid duration' });
-        // }
-
-        let startDate;
-
-        // Set the start date based on the specified duration
-        switch (duration) {
-            case 'week':
-                startDate = moment().subtract(7, 'days').startOf('day').toDate();
-                break;
-            case 'month':
-                startDate = moment().subtract(1, 'month').startOf('day').toDate();
-                break;
-            case 'today':
-                startDate = moment().startOf('day').toDate();
-                break;
-        }
-
-        // Query the database for documents within the specified date range and section
-        const result = await Board.find({ currentDate: { $gte: startDate }, status });
-
-        res.status(200).json({ data: result });
+      let startDate;
+  
+      // Set the start date based on the specified duration
+      switch (duration) {
+        case 'week':
+          startDate = new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'month':
+          startDate = new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        case 'today':
+          startDate = new Date(new Date().setHours(0, 0, 0, 0));
+          break;
+        default:
+          return res.status(400).json({ errorMessage: 'Invalid duration' });
+      }
+  
+      // Query the database for documents within the specified date range
+      const result = await Board.find({ createdDate: { $gte: startDate }, status: status });
+  
+      res.status(200).json({ data: result });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
-});
-
+  });
 //status update
 
 router.put('/updateStatus', verify, async (req, res) => {

@@ -39,7 +39,14 @@ router.post('/register', async (req, res) => {
         // Generate token
         const token = jwt.sign({ email: newUser.email }, process.env.JWT_SECRET);
 
-        res.status(201).json({ message: 'User registered successfully', token });
+        res.json({
+            message: "User registered successfully",
+            token: token,
+            name: name,
+            password: hashedPassword,
+            success:true,
+        });
+        // res.status(201).json({ message: 'User registered successfully', token });
     } catch (error) {
         res.status(500).json({ message: 'Failed to register user', error: error.message });
     }
@@ -74,7 +81,13 @@ router.post('/login', async (req, res) => {
 
         const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET);
 
-        res.json({ message: 'Login successful', token });
+        res.json({
+            message: "User login successfully",
+            token: token,
+            name: user.name,
+            success:true,
+        });
+        // res.json({ message: 'Login successful', token });
     } catch (error) {
         res.status(500).json({ message: 'Failed to login', error: error.message });
     }
@@ -89,7 +102,7 @@ router.get('/profile', verifyToken, async (req, res) => {
 module.exports = router;
 
 //update Password
-router.put('/updatePassword', verifyToken, async (req, res) => {
+router.put('/passwordUpdation', verifyToken, async (req, res) => {
     const { name, oldPassword, newPassword } = req.body;
 
     try {
